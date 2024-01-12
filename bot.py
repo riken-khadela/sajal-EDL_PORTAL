@@ -13,7 +13,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 import random, time
 def random_sleep(a=5,b=9):
-    time.sleep(random.randint(a,b))
+    acc = random.randint(a,b)
+    print('random sleep :',acc)
+    time.sleep(acc)
     
 chromedriver_path = os.path.join(os.getcwd(),'chromedriver')
 chrome_binary_path = '/usr/bin/google-chrome'
@@ -101,7 +103,7 @@ class Bot():
     
         
     def find_element(self, element, locator, locator_type=By.XPATH,
-            page=None, timeout=10,
+            page=None, timeout=10, 
             condition_func=EC.presence_of_element_located,
             condition_other_args=tuple()):
         """Find an element, then return it or None.
@@ -129,6 +131,38 @@ class Bot():
                         f' in the page "{page}"')
             else:
                 print(f'Cannot find the element: {element}')
+                
+    def find_element(self, element, locator, locator_type=By.XPATH,
+            timeout=10, page=None, bulk = False):
+        """
+        element      : name of element,
+        locator      : xpath or other locator text,
+        locator_type : locator type, 
+        timeout      : default 10,
+
+        Find an element, return it, or return None;
+        """
+        try:
+            if timeout > 0:
+                wait_obj = WebDriverWait(self.driver, timeout)
+                ele = wait_obj.until(EC.presence_of_element_located((locator_type, locator))) if not bulk else wait_obj.until(EC.presence_of_all_elements_located((locator_type, locator)))
+            else:
+                print(f'Timeout is less or equal zero: {timeout}')
+                ele = self.driver.find_element(by=locator_type,
+                        value=locator) if not bulk else self.driver.find_elements(by=locator_type,value=locator)
+            if page:
+                print(
+                    f'Found the element "{element}" in the page "{page}"')
+            else:
+                print(f'Found the element: {element}')
+            return ele
+        except Exception as e:
+            if page:
+                print(f'Cannot find the element "{element}"'
+                        f' in the page "{page}"')
+            else:
+                print(f'Cannot find the element: {element}')
+                print(e)
                 
     def click_element(self, element, locator, locator_type=By.XPATH,
             timeout=10):
@@ -207,13 +241,89 @@ class Bot():
         self.driver.switch_to.window(self.driver.window_handles[0])
         ...
     
+    def login(self):
+        self.driver.get('https://div.edl.ch')
+        if self.input_text('beag_barr','username','username',By.ID) :
+            self.input_text('P4r1s13nn3!86','password','password',By.ID)
+            self.click_element('submitbutton','submitbutton',By.ID)
+        
+    def get_kw_data(self):
+        ...
+    
     def work(self):
-        self.driver.get('https://div.edl.ch/auth/auth/engine/UsernamePassword?set_new_language=en')
-        # beag_barr
-        # P4r1s13nn3!86
-        self.input_text('beag_barr','username','username',By.ID)
-        self.input_text('P4r1s13nn3!86','password','password',By.ID)
-        self.click_element('submitbutton','submitbutton',By.ID)
+        data = {}
+        numbers_tr = 0
+        numbers_tr_ele = []
+        l_tr_table = []
+        engines_links = []
+        l_table = ''
+        
+        self.login()
+        table = self.find_element('Table','table',By.TAG_NAME)
+        tbody = table.find_elements(By.TAG_NAME,'tbody')
+        if tbody :
+            tbody = tbody[0]
+            numbers_tr_ele = tbody.find_elements(By.TAG_NAME,'tr')
+            numbers_tr = len(numbers_tr_ele)
+            
+        for tr_tag in numbers_tr_ele :
+            tr_a_tag = tr_tag.find_elements(By.XPATH,'//td[@data-menu_uuid="o.name"]/a')
+            if tr_a_tag :
+                tr_a_tag[0].click()
+                
+                self.click_element('Link btn','//*[@id="ui-id-5"]')
+                l_table = self.find_element('object table','mst-table_layout-processed',By.CLASS_NAME,bulk=True)
+                # l_table = self.driver.find_elements(By.CLASS_NAME,'mst-table_layout-processed')
+                if l_table :
+                    l_tbody = l_table[0].find_elements(By.TAG_NAME,'tbody')
+                    
+                    if l_tbody :
+                        l_tr_table = l_tbody[0].find_elements(By.TAG_NAME,'tr')
+                        if l_tr_table :
+                            
+                            use_link = l_tr_table[0].find_elements(By.XPATH,'//td[@data-menu_uuid="use"]/a')
+                            if use_link :
+                                engines_links.append(use_link[0].get_attribute('href'))
+            
+                self.driver.back()
+                self.driver.refresh()   
+        
+        
+        kw_li_ele = []
+        kw_li_url = []
+        for use_link in engines_links :   
+            self.driver.get(use_link)
+            iframe = ''
+            iframe = self.find_element('iframe','iframe',By.TAG_NAME)
+            if iframe :
+                self.driver.switch_to.frame(iframe)
+                # for i in self.driver.find_elements(By.TAG_NAME,'g') :
+                #     if i.get_attribute('id').startswith('group_') :
+                #         inside_img = i.find_elements(By.TAG_NAME,'image')
+                #         if inside_img :
+                #             if inside_img[0].get_attribute('xlink:href') != 'https://div.edl.ch/www/95b5638459623fa2d87d41fd42ff9d4e/pic/Promos_MasterSchalter_AKS_passiv.jpg' :
+                #                 kw_li_ele.append(i)
+                                
+                breakpoint()
+                random_sleep()
+                kw_li_ele = [i for i in self.driver.find_elements(By.TAG_NAME,'g') if i.find_elements(By.TAG_NAME,'g') and i.find_element(By.TAG_NAME,'g').find_elements(By.TAG_NAME,'rect')][4:-3]
+                for ii_ in range(len(kw_li_ele)) : 
+                    kw_li_ele = [i for i in self.driver.find_elements(By.TAG_NAME,'g') if i.find_elements(By.TAG_NAME,'g') and i.find_element(By.TAG_NAME,'g').find_elements(By.TAG_NAME,'rect')][4:-3]
+                    ii = kw_li_ele[ii_]
+                    try :
+                        ii.click()
+                        self.driver.switch_to.window(self.driver.window_handles[-1])
+                        
+                        kw_li_url.append(self.driver.current_url)
+                        self.driver.close()
+                    except :
+                        ...
+                    finally :
+                        self.driver.switch_to.window(self.driver.window_handles[-1])
+                        self.driver.switch_to.default_content()
+                        self.driver.switch_to.frame(self.find_element('iframe','iframe',By.TAG_NAME))
+                        
+
         breakpoint()
 
     
