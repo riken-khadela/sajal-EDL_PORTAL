@@ -13,8 +13,6 @@ async def server(websocket, path):
     bot_.work()
     try:
         while True:
-            # Sending a message to the client every 5 seconds
-            message = "Hello from the server!"
             for conn in connected:
                 await conn.send(json.dumps(bot_.return_main_data()))
             time.sleep(5)
