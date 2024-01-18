@@ -424,11 +424,13 @@ class Bot:
             },
         }
         main_data = []
+        
         for win in self.driver.window_handles:
+            self.driver.switch_to.window(win)
+            
             time.sleep(2)
             data = {}
             for key, value in variabless.items():
-                print(f"Key: {key}, Value: {value}")
                 if type(value) != dict :
                     data[key] = self.scrap_data1(value)
                 else :
@@ -436,7 +438,7 @@ class Bot:
             
             main_data.append(data)
         
-        return main_data
+        return {"data":main_data}
                 
     def scrap_data1(self,  value : str):
         kw = ''
@@ -445,7 +447,6 @@ class Bot:
         if len(v1) > 1 :
             kw = v1[1]
         idd = v1[0]
-        breakpoint()
         ele = self.driver.find_elements(By.ID,idd)
         if ele :
             rt_v = ele[0].text 
