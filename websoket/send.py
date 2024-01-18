@@ -9,7 +9,6 @@ async def send_data():
         bot_ = Bot()
         bot_.get_local_driver()
         bot_.work()
-        breakpoint()
         while True:
             data_to_send = bot_.return_main_data()
             await websocket.send(data_to_send)
