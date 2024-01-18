@@ -25,9 +25,6 @@ chrome_binary_path = "/usr/bin/google-chrome"
 
 
 class Bot:
-    def __init__(self):
-        self.get_local_driver()
-        self.work()
 
     def return_driver(self):
         self.get_driver()
@@ -300,7 +297,7 @@ class Bot:
             numbers_tr_ele = tbody.find_elements(By.TAG_NAME, "tr")
             numbers_tr = len(numbers_tr_ele)
 
-        for tr_tag in [numbers_tr_ele[0]]:
+        for tr_tag in numbers_tr_ele:
             tr_a_tag = tr_tag.find_elements(
                 By.XPATH, '//td[@data-menu_uuid="o.name"]/a'
             )
@@ -332,7 +329,7 @@ class Bot:
 
         kw_li_ele = []
         kw_li_url = []
-        for use_link in [engines_links[0]]:
+        for use_link in engines_links:
             self.driver.get(use_link)
             iframe = ""
             iframe = self.find_element("iframe", "iframe", By.TAG_NAME)
@@ -379,7 +376,7 @@ class Bot:
                             self.find_element("iframe", "iframe", By.TAG_NAME)
                         )
 
-        for kw_li in [kw_li_url[0]]:
+        for kw_li in kw_li_url:
             self.driver.execute_script(f"window.open('{kw_li}', '_blank');")
 
         
@@ -392,8 +389,6 @@ class Bot:
             self.driver.close() if "object-link" in self.driver.current_url else print(
                 self.driver.current_url
             )
-            self.driver.refresh()
-            self.random_sleep(5,10)
     
     def return_main_data(self):
         variabless = {
@@ -466,8 +461,3 @@ class Bot:
             tmp[key] = self.scrap_data1(value)
         
         return tmp
-
-            
-bb = Bot()
-bb.get_local_driver()
-bb.work()
