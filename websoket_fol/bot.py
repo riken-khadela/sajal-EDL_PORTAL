@@ -1,5 +1,5 @@
 from audioop import avg
-import random, time, os, json
+import random, time, os, json, asyncio
 from selenium_stealth import stealth
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,6 +9,7 @@ import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
 
 import random, time
@@ -366,30 +367,72 @@ class Bot:
                         random_sleep()
                         self.driver.switch_to.window(self.driver.window_handles[-1])
                         kw_li_url.append(self.driver.current_url)
-                        self.driver.close()
+                        # self.driver.close()
                     except:
                         ...
                     finally:
-                        self.driver.switch_to.window(self.driver.window_handles[-1])
+                        self.driver.switch_to.window(self.driver.window_handles[0])
                         self.driver.switch_to.default_content()
                         self.driver.switch_to.frame(
                             self.find_element("iframe", "iframe", By.TAG_NAME)
                         )
+        # for kw_li in kw_li_url:
+        #     self.driver.execute_script(f"window.open('{kw_li}', '_blank');")
 
-        for kw_li in kw_li_url:
-            self.driver.execute_script(f"window.open('{kw_li}', '_blank');")
+        # self.driver.switch_to.window(self.driver.window_handles[0])
+        # self.driver.close()
 
         
-
         
         
-        
-        for win in self.driver.window_handles:
-            self.driver.switch_to.window(win)
-            self.driver.close() if "object-link" in self.driver.current_url else print(
-                self.driver.current_url
-            )
+        # for win in self.driver.window_handles:
+        #     self.driver.switch_to.window(win)
+        #     self.driver.close() if "object-link" in self.driver.current_url else print(
+        #         self.driver.current_url
+        #     )
     
+    # def process_window(self, win):
+    #     variabless = {
+    #         "main kw": "useclip005f007a kW",
+    #         "Strom L1..L3 AVG": "useclip005f0073 A",
+    #         "Scheinleistung L1..L3": "useclip005f0081 kVA",
+    #         "Blindleistung L1..L3": "useclip005f0088 kVAR",
+            
+    #         "Leistung": {
+    #             "Leistung L1": "useclip005f005e kW",
+    #             "Leistung L2": "useclip005f0065 kW",
+    #             "Leistung L3": "useclip005f006c kW",
+    #         },
+    #         "CosPhi/Frequenz/Harmonie": {
+    #             "CosPhi L1": "useclip005f001f",
+    #             "CosPhi L2": "useclip005f0026",
+    #             "CosPhi L3": "useclip005f002d",
+    #         },
+    #         "Blindleistung/Energie": {
+    #             "Blindleistung L1": "useclip005f0049 kVAR",
+    #             "Blindleistung L2": "useclip005f0050 kVAR",
+    #             "Blindleistung L3": "useclip005f0057 kVAR",
+    #         },
+    #         "Spannungen": {
+    #             "Spannung L1-L2": "useclip005f0034 V",
+    #             "Spannung L2-L3": "useclip005f003b V",
+    #             "Spannung L3-L1": "useclip005f0042 V",
+    #         },
+    #         "Scheinleistung/Energie": {
+    #             "Scheinleistung L1": "useclip005f000a kVA",
+    #             "Scheinleistung L2": "useclip005f0011 kVA",
+    #             "Scheinleistung L3": "useclip005f0018 kVA",
+    #         },
+    #     }
+    #     self.driver.switch_to.window(win)
+    #     data = {}
+    #     for key, value in variabless.items():
+    #         if type(value) != dict:
+    #             data[key] = self.scrap_data1(value)
+    #         else:
+    #             data[key] = self.scrap_data2(value)
+    #     main_data.append(data)
+
     def return_main_data(self):
         variabless = {
             "main kw": "useclip005f007a kW",
@@ -423,22 +466,31 @@ class Bot:
                 "Scheinleistung L3": "useclip005f0018 kVA",
             },
         }
-        main_data = []
         
-        for win in self.driver.window_handles:
-            self.driver.switch_to.window(win)
-            
-            time.sleep(2)
-            data = {}
-            for key, value in variabless.items():
-                if type(value) != dict :
-                    data[key] = self.scrap_data1(value)
-                else :
-                    data[key] = self.scrap_data2(value)
-            
-            main_data.append(data)
+        # self.driver.switch_to.window(win)
         
-        return {"data":main_data}
+        data = {}
+        for key, value in variabless.items():
+            if type(value) != dict :
+                data[key] = self.scrap_data1(value)
+            else :
+                data[key] = self.scrap_data2(value)
+            
+        return data
+
+    async def return_main_data_for_all_windows_parallel_helper(self, win):
+        self.driver.switch_to.window(win)
+        return self.return_main_data()
+
+    async def return_main_data_for_all_windows_parallel(self):
+        all_main_data = []
+        with ThreadPoolExecutor() as executor:
+            tasks = [self.return_main_data_for_all_windows_parallel_helper(win) for win in self.driver.window_handles[1:]]
+            results = await asyncio.gather(*tasks)
+            # breakpoint()
+            for result in results:
+                all_main_data.extend(result)
+        return all_main_data
                 
     def scrap_data1(self,  value : str):
         kw = ''

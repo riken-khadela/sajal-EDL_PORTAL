@@ -1,4 +1,4 @@
-import asyncio
+import asyncio,datetime
 import websockets
 import time, json
 from  bot import Bot
@@ -14,8 +14,9 @@ async def server(websocket, path):
     try:
         while True:
             for conn in connected:
-                await conn.send(json.dumps(bot_.return_main_data()))
-            time.sleep(5)
+                main_data = await bot_.return_main_data_for_all_windows_parallel()
+                await conn.send(json.dumps(json.dumps({"data": main_data})))
+                print(f'\n\n\n Dattime : {datetime.datetime.now()}')
     finally:
         # Unregister.
         connected.remove(websocket)
