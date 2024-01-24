@@ -15,7 +15,7 @@ async def server(websocket, path):
         while True:
             for conn in connected:
                 main_data = await bot_.return_main_data_for_all_windows_parallel()
-                await conn.send(json.dumps(json.dumps({"data": main_data})))
+                await conn.send(json.dumps({"data": main_data}))
                 print(f'\n\n\n Dattime : {datetime.datetime.now()}')
     finally:
         # Unregister.

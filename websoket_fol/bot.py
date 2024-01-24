@@ -63,6 +63,9 @@ class Bot:
             try:
                 driver = webdriver.Chrome()
                 driver.get("https://www.google.com")
+                # breakpoint()
+                # with open('cookies.pkl', 'rb') as file: cookies = pickle.load(file)
+                # for cookie in cookies: driver.add_cookie(cookie)
                 break
             except Exception as e:
                 print(e)
@@ -468,7 +471,6 @@ class Bot:
         }
         
         # self.driver.switch_to.window(win)
-        
         data = {}
         for key, value in variabless.items():
             if type(value) != dict :
@@ -487,10 +489,9 @@ class Bot:
         with ThreadPoolExecutor() as executor:
             tasks = [self.return_main_data_for_all_windows_parallel_helper(win) for win in self.driver.window_handles[1:]]
             results = await asyncio.gather(*tasks)
-            # breakpoint()
-            for result in results:
-                all_main_data.extend(result)
-        return all_main_data
+            # for result in results:
+            #     all_main_data.extend(result)
+        return results
                 
     def scrap_data1(self,  value : str):
         kw = ''
